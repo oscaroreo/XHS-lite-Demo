@@ -12,6 +12,11 @@ const routes = [
     component: () => import('@/views/Detail/index.vue'),
   },
   {
+    path: '/regret-sim',
+    name: 'RegretSim',
+    component: () => import('@/views/RegretSim/index.vue'),
+  },
+  {
     path: '/:catchAll(.*)',
     name: 'NotFound',
     component: () => import('@/views/NotFound/index.vue'),

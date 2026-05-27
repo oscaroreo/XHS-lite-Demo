@@ -105,6 +105,7 @@ export function generateNotes(count = 30) {
 // 频道配置
 export const channels = [
   { id: 'recommend', label: '推荐', path: '/recommend' },
+  { id: 'regret', label: '瞬息', path: '/regret' },
   { id: 'fashion', label: '穿搭', path: '/fashion' },
   { id: 'food', label: '美食', path: '/food' },
   { id: 'travel', label: '旅行', path: '/travel' },
