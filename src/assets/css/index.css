@@ -1,0 +1,74 @@
+@import './theme.css';
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family);
+  background-color: var(--bg-color-primary);
+  color: var(--text-color-primary);
+  overflow-x: hidden;
+  width: 100vw;
+  min-width: 100%;
+  min-height: 100vh;
+  max-width: 100vw;
+}
+
+button, input, textarea, select {
+  font-family: inherit;
+}
+
+#app {
+  display: flex;
+  justify-content: center;
+  width: 100vw;
+  min-width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  background-color: var(--bg-color-primary);
+  box-sizing: border-box;
+}
+
+/* 全局滚动条样式 */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-color-quaternary);
+  border-radius: 3px;
+}
+
+/* 动画 */
+@keyframes skeleton-shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+
+@keyframes skeleton-loading {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
