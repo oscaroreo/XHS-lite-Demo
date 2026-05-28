@@ -79,6 +79,16 @@ function startSimulation(caseId) {
   navigateToSim(caseId)
 }
 
+function handleDetailRegret(caseId) {
+  closeDetail()
+  if (caseId) {
+    navigateToSim(caseId)
+  } else {
+    activeChannel.value = 'regret'
+    refreshKey.value++
+  }
+}
+
 // ---- Regret Pill ----
 function handlePillClick() {
   showOverlay.value = true
@@ -142,6 +152,9 @@ onUnmounted(() => {
           <SvgIcon name="search" class="search-icon" width="18" height="18" />
         </div>
         <div class="header-actions">
+          <button class="regret-header-btn" @click="activeChannel = 'regret'; refreshKey++" title="瞬息小红薯">
+            <span class="regret-header-icon">🌀</span>
+          </button>
           <button class="theme-toggle" @click="$emit('toggle-theme')">
             <SvgIcon name="sun" width="20" height="20" />
           </button>
@@ -155,9 +168,43 @@ onUnmounted(() => {
         :tabs="channels"
         :activeTab="activeChannel"
         :enableDrag="true"
+        highlightedTabId="regret"
         @tab-change="handleTabChange"
       />
     </div>
+
+    <!-- Regret teaser -->
+    <Transition name="teaser">
+      <div
+        v-if="activeChannel === 'recommend' && !searchText.trim()"
+        class="regret-teaser"
+      >
+        <div class="teaser-inner">
+          <div class="teaser-header">
+            <span class="teaser-title">
+              <span class="teaser-emoji">🌀</span>
+              瞬息小红薯
+            </span>
+            <button class="teaser-more" @click="activeChannel = 'regret'; refreshKey++">
+              查看全部
+              <SvgIcon name="right" width="12" height="12" color="var(--primary-color)" />
+            </button>
+          </div>
+          <div class="teaser-cases">
+            <div
+              v-for="dc in decisionCases"
+              :key="dc.id"
+              class="teaser-case"
+              @click="navigateToSim(dc.id)"
+            >
+              <span class="teaser-case-emoji">{{ dc.emoji }}</span>
+              <span class="teaser-case-title">{{ dc.title }}</span>
+              <span class="teaser-case-arrow">→</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
 
     <!-- Loading indicator -->
     <LoadingSpinner v-if="isChannelLoading" />
@@ -229,6 +276,7 @@ onUnmounted(() => {
         :item="selectedItem"
         :click-position="clickPosition"
         @close="closeDetail"
+        @navigate-regret="handleDetailRegret"
       />
     </Teleport>
 
@@ -385,6 +433,149 @@ onUnmounted(() => {
 .theme-toggle:hover {
   background: var(--bg-color-secondary);
   color: var(--text-color-primary);
+}
+
+/* Header regret button */
+.regret-header-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: background 0.2s, transform 0.2s;
+  position: relative;
+}
+
+.regret-header-btn:hover {
+  background: var(--bg-color-secondary);
+  transform: scale(1.1);
+}
+
+.regret-header-icon {
+  line-height: 1;
+  animation: header-float 3s ease-in-out infinite;
+}
+
+@keyframes header-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+/* Regret teaser card */
+.regret-teaser {
+  padding: 12px 16px 4px;
+}
+
+.teaser-inner {
+  background: linear-gradient(135deg, rgba(255, 36, 66, 0.05), rgba(255, 36, 66, 0.01));
+  border: 1px solid rgba(255, 36, 66, 0.12);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.teaser-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.teaser-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-color-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.teaser-emoji {
+  font-size: 18px;
+}
+
+.teaser-more {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: var(--primary-color);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.teaser-more:hover {
+  background: rgba(255, 36, 66, 0.08);
+}
+
+.teaser-cases {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.teaser-case {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.teaser-case:hover {
+  background: var(--bg-color-primary);
+  transform: translateX(3px);
+}
+
+.teaser-case-emoji {
+  font-size: 22px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.teaser-case-title {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-color-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.teaser-case-arrow {
+  font-size: 14px;
+  color: var(--text-color-quaternary);
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+
+.teaser-case:hover .teaser-case-arrow {
+  transform: translateX(3px);
+  color: var(--primary-color);
+}
+
+/* Teaser transition */
+.teaser-enter-active { animation: teaser-in 0.35s ease; }
+.teaser-leave-active { animation: teaser-out 0.25s ease; }
+
+@keyframes teaser-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes teaser-out {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-10px); }
 }
 
 /* Channel wrapper */

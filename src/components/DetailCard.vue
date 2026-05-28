@@ -1,13 +1,16 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { useRouter } from 'vue-router'
 import SvgIcon from '@/components/SvgIcon.vue'
+import { matchTags } from '@/utils/regretData'
 
 const props = defineProps({
   item: { type: Object, required: true },
   clickPosition: { type: Object, default: () => ({ x: 0, y: 0 }) },
+  pageMode: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'navigate-regret'])
 
 const currentImageIndex = ref(0)
 const isAnimating = ref(true)
@@ -17,6 +20,13 @@ const isLiked = ref(props.item.liked || false)
 const isCollected = ref(props.item.collected || false)
 const likeCount = ref(props.item.likeCount || 0)
 const collectCount = ref(props.item.collectCount || 0)
+const router = useRouter()
+const showRegretPopover = ref(false)
+
+const matchedRegretCase = computed(() => {
+  if (!props.item?.tags) return null
+  return matchTags(props.item.tags)
+})
 
 const imageList = computed(() => {
   return props.item.images && props.item.images.length > 0
@@ -69,12 +79,40 @@ function handleShare() {
   navigator.clipboard?.writeText(`【${props.item.title}】分享自XHS-lite-Demo`)
 }
 
+// ---- Regret handler ----
+function handleRegretClick() {
+  showRegretPopover.value = true
+}
+
+function closeRegretPopover() {
+  showRegretPopover.value = false
+}
+
+function goToRegretSim() {
+  showRegretPopover.value = false
+  if (props.pageMode) {
+    if (matchedRegretCase.value) {
+      router.push({ path: '/regret-sim', query: { caseId: matchedRegretCase.value.id } })
+    } else {
+      router.push('/')
+    }
+  } else {
+    emit('navigate-regret', matchedRegretCase.value?.id || null)
+  }
+}
+
 function handleOverlayClick(e) {
   if (e.target === e.currentTarget) closeModal()
 }
 
 function handleKeydown(e) {
-  if (e.key === 'Escape') closeModal()
+  if (e.key === 'Escape') {
+    if (showRegretPopover.value) {
+      closeRegretPopover()
+      return
+    }
+    closeModal()
+  }
   if (e.key === 'ArrowLeft') prevImage()
   if (e.key === 'ArrowRight') nextImage()
 }
@@ -222,11 +260,52 @@ onUnmounted(() => {
             <div class="action-btn" @click="handleShare">
               <SvgIcon name="share" width="22" height="22" />
             </div>
+            <div
+              class="action-btn regret-btn"
+              :class="{ 'has-match': matchedRegretCase }"
+              @click.stop="handleRegretClick"
+              :title="matchedRegretCase ? '看看平行世界的你' : '瞬息小红薯'"
+            >
+              <span class="regret-action-icon">🌀</span>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Regret popover -->
+  <Teleport to="body">
+    <div
+      v-if="showRegretPopover"
+      class="regret-popover-overlay"
+      @click.self="closeRegretPopover"
+    >
+      <div class="regret-popover">
+        <div class="popover-icon">🌀</div>
+        <div class="popover-title" v-if="matchedRegretCase">
+          你在考虑「{{ matchedRegretCase.title }}」吗？
+        </div>
+        <div class="popover-title" v-else>
+          看看平行世界里的你
+        </div>
+        <p class="popover-desc" v-if="matchedRegretCase">
+          基于这篇笔记的内容，我们发现了一个相关的生活选择。
+        </p>
+        <p class="popover-desc" v-else>
+          基于你的浏览记录，为你推荐相关的平行世界预演。
+        </p>
+        <div class="popover-actions">
+          <button class="popover-btn primary" @click="goToRegretSim">
+            🌀 看看平行世界的我
+          </button>
+          <button class="popover-btn secondary" @click="closeRegretPopover">
+            关闭
+          </button>
+        </div>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <style scoped>
@@ -592,6 +671,116 @@ onUnmounted(() => {
 
 .action-btn.active {
   color: var(--primary-color);
+}
+
+/* Regret action button */
+.action-btn.regret-btn {
+  font-size: 18px;
+  padding: 6px 8px;
+  position: relative;
+}
+
+.action-btn.regret-btn.has-match .regret-action-icon {
+  animation: regret-pulse 2s ease-in-out infinite;
+}
+
+@keyframes regret-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+.regret-action-icon {
+  line-height: 1;
+}
+
+/* Regret popover overlay */
+.regret-popover-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: popover-mask-in 0.3s ease;
+}
+
+@keyframes popover-mask-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.regret-popover {
+  background: var(--bg-color-primary);
+  border-radius: 20px;
+  padding: 32px 28px;
+  max-width: 360px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: popover-card-in 0.35s ease;
+}
+
+@keyframes popover-card-in {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.popover-icon {
+  font-size: 44px;
+  margin-bottom: 14px;
+  line-height: 1;
+}
+
+.popover-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-color-primary);
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.popover-desc {
+  font-size: 13px;
+  color: var(--text-color-tertiary);
+  margin: 0 0 22px;
+  line-height: 1.5;
+}
+
+.popover-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.popover-btn {
+  padding: 13px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.popover-btn.primary {
+  background: linear-gradient(135deg, var(--primary-color), #d91a3a);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(255, 36, 66, 0.3);
+}
+
+.popover-btn.primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(255, 36, 66, 0.4);
+}
+
+.popover-btn.secondary {
+  background: transparent;
+  color: var(--text-color-tertiary);
+}
+
+.popover-btn.secondary:hover {
+  color: var(--text-color-secondary);
 }
 
 /* Mobile responsive */

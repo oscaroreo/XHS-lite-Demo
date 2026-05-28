@@ -326,3 +326,20 @@ export function matchCase(query = '') {
 export function isDecisionQuestion(query) {
   return /(要不要|该不该|值得.*吗|应不应该|能.*吗|好不好)/.test(query)
 }
+
+// ===== Tag-based case matching =====
+const tagToCaseMap = {
+  chongqing: ['旅行', '旅游', '重庆'],
+  camera: ['摄影', '拍照', '相机'],
+  kitchen: ['美食', '居家', '厨房', '装修', '家居'],
+}
+
+export function matchTags(tags = []) {
+  if (!tags || tags.length === 0) return null
+  for (const [caseId, keywords] of Object.entries(tagToCaseMap)) {
+    if (tags.some(tag => keywords.some(kw => tag.includes(kw)))) {
+      return decisionCases.find(d => d.id === caseId) || null
+    }
+  }
+  return null
+}

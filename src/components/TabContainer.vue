@@ -5,6 +5,7 @@ const props = defineProps({
   tabs: { type: Array, required: true },
   activeTab: { type: [String, Number], default: '' },
   enableDrag: { type: Boolean, default: false },
+  highlightedTabId: { type: String, default: '' },
 })
 
 const emit = defineEmits(['tab-change'])
@@ -86,7 +87,11 @@ onUnmounted(() => {
 <template>
   <div class="tab-container" ref="containerRef" @mousedown="onMouseDown" @mouseleave="onMouseLeave"
     @mouseup="onMouseUp" @mousemove="onMouseMove">
-    <div v-for="(item, index) in tabs" :key="item.id" :class="{ active: activeId === item.id }"
+    <div v-for="(item, index) in tabs" :key="item.id"
+      :class="{
+        active: activeId === item.id,
+        highlighted: item.id === highlightedTabId && activeId !== item.id
+      }"
       class="tab-item" @click="tabSelected(item)" :ref="el => { if (el) tabItems[index] = el }">
       {{ item.label }}
     </div>
@@ -152,6 +157,29 @@ onUnmounted(() => {
   color: var(--text-color-primary);
   font-weight: bold;
   background: transparent;
+}
+
+.tab-item.highlighted {
+  color: var(--primary-color);
+  font-weight: 600;
+  position: relative;
+}
+
+.tab-item.highlighted::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary-color);
+  animation: hot-dot-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes hot-dot-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.3); }
 }
 
 .tab-slider {

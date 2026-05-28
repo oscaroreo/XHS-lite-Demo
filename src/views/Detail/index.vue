@@ -23,6 +23,14 @@ onMounted(() => {
 function goBack() {
   router.push('/')
 }
+
+function handleDetailRegret(caseId) {
+  if (caseId) {
+    router.push({ path: '/regret-sim', query: { caseId } })
+  } else {
+    router.push('/')
+  }
+}
 </script>
 
 <template>
@@ -35,6 +43,7 @@ function goBack() {
     :item="item"
     :pageMode="true"
     @close="goBack"
+    @navigate-regret="handleDetailRegret"
   />
 </template>
 

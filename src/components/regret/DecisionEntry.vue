@@ -19,8 +19,8 @@ const matchedCase = computed(() => matchCase(props.searchText))
       "{{ matchedCase.title }}"
     </div>
     <button class="entry-btn" @click="emit('start-simulation', matchedCase.id)">
-      <SvgIcon name="magic" width="18" height="18" />
-      预演未来 — 看看做了之后会发生什么
+      <span class="entry-btn-emoji">🌀</span>
+      看看平行世界的我 — 这个选择可能有 4 种结局
     </button>
     <div class="entry-others" v-if="false">
       <span>或者试试：</span>
